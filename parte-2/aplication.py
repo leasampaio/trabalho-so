@@ -145,22 +145,6 @@ def criar_grafico_memoria(ram, disco):
     plt.tight_layout()
     plt.show()
 
-def criacao_lista_processos(processos_input: List[dict]) -> List[Processo]:
-    lista_processos = []
-    for idx, processo_data in enumerate(processos_input):
-        processo = Processo(
-            id=idx,
-            tempo_chegada=processo_data["tempo_chegada"],
-            tempo_execucao=processo_data["tempo_execucao"],
-            deadline=processo_data["deadline"],
-            quantum_sistema=processo_data["quantum_sistema"],
-            sobrecarga_sistema=processo_data["sobrecarga_sistema"],
-            paginas=processo_data["paginas"]
-        )
-        lista_processos.append(processo)
-    return lista_processos
-
-
 
 def main():
     quantum_sistema = 4
