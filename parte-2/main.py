@@ -6,7 +6,7 @@ app = FastAPI()
 # Include the routers
 app.include_router(router)
 
-
+#teste
 
 
 if __name__ == "__main__":
