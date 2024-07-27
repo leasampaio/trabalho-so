@@ -8,7 +8,6 @@ class ProcessoModel(BaseModel):
     deadline: float
     quantum_sistema: Optional[int]= None
     sobrecarga_sistema: Optional[int]= None 
-    tempo_restante: float
     paginas_na_ram: List[int] = []
  
     @model_validator(mode='before')
