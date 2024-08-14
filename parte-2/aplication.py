@@ -110,7 +110,7 @@ def round_robin(processos):
     while copia_processos:
         # Filtra processos que já chegaram e estão prontos para execução
         processos_prontos = [p for p in copia_processos if p.tempo_chegada <= tempo_atual]
-        print(processos_prontos)
+       
         
         if not processos_prontos:
             # Se nenhum processo está pronto, avança o tempo para o próximo processo que chegará
@@ -121,31 +121,30 @@ def round_robin(processos):
             else:
                 break
         # Seleciona o processo com o menor tempo de deadline entre os prontos
-        processo = min(processos_prontos, key=lambda p: p.deadline)
+        processo = min(processos_prontos, key=lambda p: p.tempo_chegada)
 
         if processo.tempo_restante == 0:
             processo.tempo_restante=processo.tempo_execucao
 
         # Decrementa do tempo restante
         while(processo.tempo_restante>0):
+           
             processo.tempo_restante-=1
             processo.contador_quantum+=1
             tempo_atual+=1
-            processos_prontos = [p for p in copia_processos if p.tempo_chegada <= tempo_atual]
+            print(processo)
+             
 
-            if processos_prontos:
-                processo_aux = min(processos_prontos, key=lambda p: p.tempo_chegada)
-                if tempo_atual>=processo_aux.tempo_chegada :
+            if processo.contador_quantum==processo.quantum_sistema and processo.tempo_restante != 0:
+               for processo_aux in processos_prontos:
+                if tempo_atual>=processo_aux.tempo_chegada:
                     copia_processos.remove(processo)
                     copia_processos.append(processo)
                     tempo_atual += processo.sobrecarga_sistema
                     break
                 
             # checa se o processo atingiu o quantum
-            if processo.contador_quantum==processo.quantum_sistema and processo_aux.tempo_restante !=0:
-                tempo_atual+= processo.sobrecarga_sistema
-                processo.contador_quantum = 0
-                break
+             
 
             else:
                 # Caso não haja processos prontos, continue executando o processo atual
@@ -184,7 +183,7 @@ def edf(processos):
     while copia_processos:
         # Filtra processos que já chegaram e estão prontos para execução
         processos_prontos = [p for p in copia_processos if p.tempo_chegada <= tempo_atual]
-        print(processos_prontos)
+          
         processos_prontos_aux=processos_prontos
         if not processos_prontos:
             # Se nenhum processo está pronto, avança o tempo para o próximo processo que chegará
