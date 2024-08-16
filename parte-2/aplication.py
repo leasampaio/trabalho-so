@@ -2,7 +2,6 @@ import copy
 import matplotlib.pyplot as plt
 
 
-
 class Processo:
     def __init__(
         self,
@@ -21,6 +20,7 @@ class Processo:
         self.sobrecarga_sistema = sobrecarga_sistema
         self.tempo_restante = tempo_execucao
         self.contador_quantum = 0
+        self.historico = []
 
     def __repr__(self):
         return (
@@ -116,6 +116,7 @@ def sjf(processos):
 
 def round_robin(processos):
     copia_processos = copy.deepcopy(processos)
+    copia2_processos = copy.deepcopy(processos)
     tempo_atual = 0
     turnaround_total = 0
     resultados = []
@@ -140,11 +141,8 @@ def round_robin(processos):
                 break
 
         # Seleciona o próximo processo da fila de processos prontos
-        if len(fila_processos) > 1 and len(copia_processos) != 0:
-            processo_atual = fila_processos.pop(-1)
-        else:
-            processo_atual = fila_processos.pop(0)
 
+        processo_atual = fila_processos.pop(0)
         # Executa o processo atual por até o quantum ou até terminar
         tempo_execucao = min(
             processo_atual.quantum_sistema, processo_atual.tempo_restante
@@ -154,7 +152,7 @@ def round_robin(processos):
 
         if processo_atual.tempo_restante > 0:
             # Se o processo não terminou, coloque-o de volta no final da fila de prontos
-            fila_processos.append(processo_atual)
+            copia_processos.append(processo_atual)
             tempo_atual += processo_atual.sobrecarga_sistema
 
         # Se o processo terminou, calcula os tempos de turnaround e espera
@@ -162,12 +160,17 @@ def round_robin(processos):
             turnaround_processo = tempo_atual - processo_atual.tempo_chegada
             tempo_espera = turnaround_processo - processo_atual.tempo_execucao
             turnaround_total += turnaround_processo
+
             resultados.append(
-                (f"processo_id={processo_atual.id}", tempo_espera, turnaround_processo)
+                (
+                    f"processo_id= {processo_atual.id},tempo_espera= {tempo_espera}, turnaround_processo = {turnaround_processo}"
+                )
             )
+
             print(
                 f"Processo {processo_atual.id}: tempo_espera = {tempo_espera}, turnaround_processo = {turnaround_processo}"
             )
+            processo_atual = []
 
     # Adiciona a média do turnaround aos resultados
     media_turnaround = turnaround_total / len(processos) if processos else 0
@@ -183,7 +186,7 @@ def edf(processos):
     turnaround_total = 0
     tempo_espera = 0
     resultados = []
-    qtdProcessos = len(processos)
+    lista_com_dados = []
     lista_aux = []
 
     while copia_processos:
@@ -205,7 +208,7 @@ def edf(processos):
 
         if processo.tempo_restante == 0:
             processo.tempo_restante = processo.tempo_execucao
-
+        inicio_execucao = tempo_atual
         # Decrementa do tempo restante
         while processo.tempo_restante > 0:
             processo.tempo_restante -= 1
@@ -235,6 +238,7 @@ def edf(processos):
             ):
                 tempo_atual += processo.sobrecarga_sistema
                 processo.contador_quantum = 0
+
                 break
 
             else:
@@ -263,7 +267,7 @@ def edf(processos):
         copia_processos.extend(lista_aux)
         lista_aux.clear()
 
-    resultados.append(turnaround_total / qtdProcessos)
+    resultados.append(turnaround_total / len(processos))
 
     print(resultados)
     return resultados
