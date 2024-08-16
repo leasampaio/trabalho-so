@@ -1,6 +1,6 @@
 import copy
-
 import matplotlib.pyplot as plt
+
 
 
 class Processo:
@@ -48,7 +48,11 @@ def fifo(processos: Processo):
         turnaround_total += turnaround_processo
 
         # Adiciona os resultados à lista
-        resultados.append((tempo_espera, turnaround_processo))
+        resultados.append(
+            (
+                f"processo_id= {processo.id},tempo_espera= {tempo_espera}, turnaround_processo = {turnaround_processo}"
+            )
+        )
         print(
             f"Executando {processo} tempo_espera {tempo_espera} turnaround_processo = {turnaround_processo}"
         )
@@ -92,7 +96,11 @@ def sjf(processos):
         turnaround_processo = tempo_espera + processo.tempo_execucao
         turnaround_total += turnaround_processo
         list_turnaround.append(turnaround_processo)
-        resultados.append((tempo_espera, turnaround_processo))
+        resultados.append(
+            (
+                f"processo_id= {processo.id},tempo_espera= {tempo_espera}, turnaround_processo = {turnaround_processo}"
+            )
+        )
 
         # Imprime informações do processo
         print(
@@ -111,77 +119,61 @@ def round_robin(processos):
     tempo_atual = 0
     turnaround_total = 0
     resultados = []
-    qtdProcessos = len(processos)
+    fila_processos = []
 
-    while copia_processos:
-        # Filtra processos que já chegaram e estão prontos para execução
-        processos_prontos = [
+    while copia_processos or fila_processos:
+        # Adiciona processos que chegaram ao tempo_atual à fila de processos
+        processos_chegaram = [
             p for p in copia_processos if p.tempo_chegada <= tempo_atual
         ]
-        print(processos_prontos)
+        for p in processos_chegaram:
+            fila_processos.append(p)
+            copia_processos.remove(p)
 
-        if not processos_prontos:
-            # Se nenhum processo está pronto, avança o tempo para o próximo processo que chegará
+        if not fila_processos:
             if copia_processos:
+                # Se não há processos prontos, avance o tempo para o próximo processo que chegará
                 tempo_proximo = min(p.tempo_chegada for p in copia_processos)
                 tempo_atual = tempo_proximo
                 continue
             else:
                 break
-        # Seleciona o processo com o menor tempo de deadline entre os prontos
-        processo = min(processos_prontos, key=lambda p: p.deadline)
 
-        if processo.tempo_restante == 0:
-            processo.tempo_restante = processo.tempo_execucao
+        # Seleciona o próximo processo da fila de processos prontos
+        if len(fila_processos) > 1 and len(copia_processos) != 0:
+            processo_atual = fila_processos.pop(-1)
+        else:
+            processo_atual = fila_processos.pop(0)
 
-        # Decrementa do tempo restante
-        while processo.tempo_restante > 0:
-            processo.tempo_restante -= 1
-            processo.contador_quantum += 1
-            tempo_atual += 1
-            processos_prontos = [
-                p for p in copia_processos if p.tempo_chegada <= tempo_atual
-            ]
+        # Executa o processo atual por até o quantum ou até terminar
+        tempo_execucao = min(
+            processo_atual.quantum_sistema, processo_atual.tempo_restante
+        )
+        processo_atual.tempo_restante -= tempo_execucao
+        tempo_atual += tempo_execucao
 
-            if processos_prontos:
-                processo_aux = min(processos_prontos, key=lambda p: p.tempo_chegada)
-                if tempo_atual >= processo_aux.tempo_chegada:
-                    copia_processos.remove(processo)
-                    copia_processos.append(processo)
-                    tempo_atual += processo.sobrecarga_sistema
-                    break
+        if processo_atual.tempo_restante > 0:
+            # Se o processo não terminou, coloque-o de volta no final da fila de prontos
+            fila_processos.append(processo_atual)
+            tempo_atual += processo_atual.sobrecarga_sistema
 
-            # checa se o processo atingiu o quantum
-            if (
-                processo.contador_quantum == processo.quantum_sistema
-                and processo_aux.tempo_restante != 0
-            ):
-                tempo_atual += processo.sobrecarga_sistema
-                processo.contador_quantum = 0
-                break
-
-            else:
-                # Caso não haja processos prontos, continue executando o processo atual
-                continue
-
-        # Remove o processo selecionado da lista
-        if processo.tempo_restante == 0:
-            copia_processos.remove(processo)
-
-            turnaround_processo = tempo_atual - processo.tempo_chegada
-            tempo_espera = turnaround_processo - processo.tempo_execucao
+        # Se o processo terminou, calcula os tempos de turnaround e espera
+        if processo_atual.tempo_restante == 0:
+            turnaround_processo = tempo_atual - processo_atual.tempo_chegada
+            tempo_espera = turnaround_processo - processo_atual.tempo_execucao
             turnaround_total += turnaround_processo
-            resultados.append((tempo_espera, turnaround_processo))
-            # print(tempo_atual)
+            resultados.append(
+                (f"processo_id={processo_atual.id}", tempo_espera, turnaround_processo)
+            )
             print(
-                f"Executando {processo} tempo_espera {tempo_espera} turnaround_processo = {turnaround_processo}"
+                f"Processo {processo_atual.id}: tempo_espera = {tempo_espera}, turnaround_processo = {turnaround_processo}"
             )
 
-        # Adiciona processos pausados de volta à lista de processos
+    # Adiciona a média do turnaround aos resultados
+    media_turnaround = turnaround_total / len(processos) if processos else 0
+    resultados.append(("Média", media_turnaround))
 
-    resultados.append(turnaround_total / qtdProcessos)
-
-    print(resultados)
+    print("Resultados:", resultados)
     return resultados
 
 
@@ -199,7 +191,7 @@ def edf(processos):
         processos_prontos = [
             p for p in copia_processos if p.tempo_chegada <= tempo_atual
         ]
-        print(processos_prontos)
+
         if not processos_prontos:
             # Se nenhum processo está pronto, avança o tempo para o próximo processo que chegará
             if copia_processos:
@@ -219,6 +211,7 @@ def edf(processos):
             processo.tempo_restante -= 1
             processo.contador_quantum += 1
             tempo_atual += 1
+
             processos_prontos = [
                 p for p in copia_processos if p.tempo_chegada <= tempo_atual
             ]
@@ -233,6 +226,7 @@ def edf(processos):
                     lista_aux.append(processo)
                     copia_processos.remove(processo)
                     tempo_atual += processo.sobrecarga_sistema
+
                     break
             # checa se o processo atingiu o quantum
             if (
@@ -254,7 +248,12 @@ def edf(processos):
             turnaround_processo = tempo_atual - processo.tempo_chegada
             tempo_espera = turnaround_processo - processo.tempo_execucao
             turnaround_total += turnaround_processo
-            resultados.append((tempo_espera, turnaround_processo))
+            resultados.append(
+                (
+                    f"processo_id= {processo.id},tempo_espera= {tempo_espera}, turnaround_processo = {turnaround_processo}"
+                )
+            )
+
             # print(tempo_atual)
             print(
                 f"Executando {processo} tempo_espera {tempo_espera} turnaround_processo = {turnaround_processo}"
@@ -321,12 +320,18 @@ def main():
     #     Processo(4, 3, 3, 4, quantum_sistema, sobrecarga_sistema),
     # ]
     lista_processos = [
-        Processo(1, 0, 4, 7, quantum_sistema, sobrecarga_sistema),
-        Processo(2, 2, 2, 5, quantum_sistema, sobrecarga_sistema),
-        Processo(3, 4, 1, 8, quantum_sistema, sobrecarga_sistema),
-        Processo(4, 6, 3, 10, quantum_sistema, sobrecarga_sistema),
+        Processo(1, 0, 15, 45, quantum_sistema, sobrecarga_sistema),
+        Processo(2, 3, 4, 9, quantum_sistema, sobrecarga_sistema),
+        Processo(3, 6, 10, 22, quantum_sistema, sobrecarga_sistema),
+        Processo(4, 9, 10, 35, quantum_sistema, sobrecarga_sistema),
     ]
 
+    # lista_processos = [
+    #     Processo(1, 0, 4, 7, quantum_sistema, sobrecarga_sistema),
+    #     Processo(2, 2, 2, 5, quantum_sistema, sobrecarga_sistema),
+    #     Processo(3, 4, 1, 8, quantum_sistema, sobrecarga_sistema),
+    #     Processo(4, 6, 3, 10, quantum_sistema, sobrecarga_sistema),
+    # ]
     # self, id, tempo_chegada, tempo_execucao, deadline, quantum_sistema, sobrecarga_sistema, paginas
     # lista_processos = [
     #     Processo(1, 0, 1, 6, quantum_sistema, sobrecarga_sistema),
