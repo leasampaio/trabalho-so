@@ -43,6 +43,7 @@ def fifo(processos: Processo):
             tempo_atual = processo.tempo_chegada
 
         # Calcula o tempo de espera e o turnaround do processo
+        
         tempo_espera = tempo_atual - processo.tempo_chegada
         turnaround_processo = tempo_espera + processo.tempo_execucao
         turnaround_total += turnaround_processo
@@ -54,7 +55,9 @@ def fifo(processos: Processo):
             'fim':processo.tempo_execucao,
             'tempo_espera': tempo_espera+processo.tempo_chegada,
             'turnaround': turnaround_processo,
-             'Turnaround_Medio': turnaround_total / len(processos)
+             'Turnaround_Medio': turnaround_total / len(processos),
+             'tempo_chegada': processo.tempo_chegada
+             
 
     
         })
@@ -108,8 +111,8 @@ def sjf(processos):
             'fim':processo.tempo_execucao,
             'tempo_espera': tempo_espera+processo.tempo_chegada,
             'turnaround': turnaround_processo,
-             'Turnaround_Medio': turnaround_total / len(processos)
-
+            'Turnaround_Medio': turnaround_total / len(processos),
+            'tempo_chegada': processo.tempo_chegada
     
         })
         
@@ -183,7 +186,7 @@ def round_robin(processos):
             dados_processos[processo_atual.id]['turnaround'] = turnaround_processo
             dados_processos[processo_atual.id]['Turnaround_Medio'] = turnaround_total / len(processos)
             
-            
+
             # Adiciona os dados do processo aos resultados
             resultados.append(dados_processos[processo_atual.id])
 
@@ -287,7 +290,7 @@ def edf(processos):
     print(resultados)
     return resultados
 
-
+ 
   
 def criar_grafico_gantt(resultados ,tempo_total, tipo_escalonador):
     fig, gnt = plt.subplots()
@@ -305,9 +308,9 @@ def criar_grafico_gantt(resultados ,tempo_total, tipo_escalonador):
             
             if tipo_escalonador == 1:
                 # Adiciona a barra para o tempo de espera (cor azul)
-                if resultado['tempo_espera'] > 0:
+                if resultado['tempo_espera'] and resultado['tempo_chegada'] > 0 :
                     gnt.broken_barh(
-                        [(resultado['inicio'], resultado['tempo_espera'])],  # Tempo de espera
+                        [(resultado['inicio'], resultado['tempo_espera']-resultado['tempo_chegada'])],  # Tempo de espera
                         (10 * idx, 9),
                         facecolor='blue',
                         edgecolor='black'
@@ -389,7 +392,7 @@ def main():
         Processo(3, 4, 1, 8, quantum_sistema, sobrecarga_sistema),
         Processo(4, 6, 3, 10, quantum_sistema, sobrecarga_sistema),
     ]
-    # self, id, tempo_chegada, tempo_execucao, deadline, quantum_sistema, sobrecarga_sistema, paginas
+   # self, id, tempo_chegada, tempo_execucao, deadline, quantum_sistema, sobrecarga_sistema, paginas
     # lista_processos = [
     #     Processo(1, 0, 1, 6, quantum_sistema, sobrecarga_sistema),
     #     Processo(2, 0, 5, 12, quantum_sistema, sobrecarga_sistema),
@@ -401,13 +404,13 @@ def main():
     # fifo_resultado=fifo(lista_processos[:])
     # criar_grafico_gantt( fifo_resultado,60,1)
     
-    # print("\nSJF:")
-    # sjf_resultado=sjf(lista_processos[:])
-    # criar_grafico_gantt(sjf_resultado,60,1)
+    print("\nSJF:")
+    sjf_resultado=sjf(lista_processos[:])
+    criar_grafico_gantt(sjf_resultado,60,1)
 
-    print("\nRound Robin:")
-    rr_resultado=round_robin(lista_processos)
-    criar_grafico_gantt(rr_resultado,90,2)
+    # print("\nRound Robin:")
+    # rr_resultado=round_robin(lista_processos)
+    # criar_grafico_gantt(rr_resultado,90,2)
 
     # print("\nEDF:")
     # edf(lista_processos[:])
