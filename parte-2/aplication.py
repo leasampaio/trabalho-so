@@ -183,6 +183,7 @@ def round_robin(processos):
             dados_processos[processo_atual.id]['turnaround'] = turnaround_processo
             dados_processos[processo_atual.id]['Turnaround_Medio'] = turnaround_total / len(processos)
             
+            
             # Adiciona os dados do processo aos resultados
             resultados.append(dados_processos[processo_atual.id])
 
