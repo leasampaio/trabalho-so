@@ -1,5 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import axios from 'axios';
+import logoUFBA from '../src/images/svg-ufba.svg';
+import logoIC from '../src/images/svg-ic.svg';
 
 function App() {
   const [processList, setProcessList] = useState([]);
@@ -78,10 +80,60 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Process Scheduler</h1>
-      
+      <div className='header'>
+        <img src={logoUFBA}/>
+        <div className='navbar'>
+          <h1>Escalonador de Processos</h1>
+          <div className='input-global'>
+          <div className='quantum-sobrecarga'>
+            <div className='label'>
+              <label for="quantum" className='inputName'>Quantum</label>
+              <input type="number" id="quantum" name="quantum"/>
+            </div>
+            <div className='label'>
+              <label for="sobrecarga" className='inputName'>Sobrecarga</label>
+              <input type="number" id="sobrecarga" name="sobrecarga"/>
+            </div>
+          </div>
+          <div className='container'>
+            <div className='radio-tile-group'>
+
+              <div className='input-container'>
+                <input id='FIFO' type="radio" name="radio"></input>
+                <div className='radio-tile'>
+                  <label for="FIFO">FIFO</label>
+                </div>
+              </div>
+
+              <div className='input-container'>
+                <input id='SJF' type="radio" name="radio"></input>
+                <div className='radio-tile'>
+                  <label for="SJF">SJF</label>
+                </div>
+              </div>
+
+              <div className='input-container'>
+                <input id='RR' type="radio" name="radio"></input>
+                <div className='radio-tile'>
+                  <label for="RR">RR</label>
+                </div>
+              </div>
+
+              <div className='input-container'>
+                <input id='EDF' type="radio" name="radio"></input>
+                <div className='radio-tile'>
+                  <label for="EDF">EDF</label>
+                </div>
+              </div>
+
+            </div>            
+          </div>
+        
+          </div>
+        </div>
+        <img src={logoIC}/>
+      </div>
       <form onSubmit={handleSubmit}>
-        <h2>Add New Process</h2>
         <div>
           <label>Tempo Chegada:
             <input
