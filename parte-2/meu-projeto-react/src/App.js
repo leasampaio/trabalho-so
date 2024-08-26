@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import logoUFBA from '../src/images/svg-ufba.svg';
 import logoIC from '../src/images/svg-ic.svg';
@@ -11,12 +11,12 @@ function App() {
     tempo_execucao: '',
     deadline: '',
     quantum_sistema: '',
-    sobrecarga_sistema: '',
-    paginas: ''
+    sobrecarga_sistema: ''
+   
   });
-  
+  const [selectedScheduler, setSelectedScheduler] = useState(1); // 1 for FIFO, 2 for Round Robin, 3 for EDF, 4 for SJF
+
   useEffect(() => {
-    // Busca a lista de processos do backend quando o componente é montado
     axios.get('http://localhost:8000/getprocesslist')
       .then(response => {
         setProcessList(response.data.process);
@@ -26,40 +26,31 @@ function App() {
       });
   }, []);
 
-   
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
     setNewProcess({
       ...newProcess,
-      [name]: value 
-      
-       
+      [name]: value
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Converte o campo 'paginas' de string para array de números
     const processData = {
       ...newProcess,
-      paginas: newProcess.paginas.split(',').map(Number)
+       
     };
 
     axios.post('http://localhost:8000/newprocess', processData)
       .then(response => {
-        // Atualiza o estado com a lista de processos recebida
         setProcessList(response.data.process);
-        // Limpa o formulário
         setNewProcess({
           tempo_chegada: '',
           tempo_execucao: '',
           deadline: '',
-          tempo_restante: '',
           quantum_sistema: '',
           sobrecarga_sistema: '',
-          paginas: ''
+          
         });
       })
       .catch(error => {
@@ -68,10 +59,9 @@ function App() {
   };
 
   const createGraph = () => {
-    axios.post('http://localhost:8000/creategraph')
+    axios.post('http://localhost:8000/creategraph', { tipo_escalonador: selectedScheduler })
       .then(response => {
-        // Atualiza o estado com a imagem recebida
-        setImage(`data:image/png;base64,${response.data.image}`);
+        setImage(`data:text/html;base64,${btoa(response.data.html)}`);
       })
       .catch(error => {
         console.error('There was an error creating the graph!', error);
@@ -133,6 +123,8 @@ function App() {
         </div>
         <img src={logoIC}/>
       </div>
+      <h1>Process Scheduler</h1>
+
       <form onSubmit={handleSubmit}>
         <div>
           <label>Tempo Chegada:
@@ -156,7 +148,6 @@ function App() {
             />
           </label>
         </div>
-        
         <div>
           <label>Deadline:
             <input
@@ -168,66 +159,49 @@ function App() {
             />
           </label>
         </div>
-        {processList.length === 0 && (
-        <>
-          <div>
-            <label>Quantum Sistema:
-              <input
-                type="number"
-                name="quantum_sistema"
-                value={newProcess.quantum_sistema}
-                onChange={handleChange}
-                required
-              />
-            </label>
-          </div>
-          <div>
-            <label>Sobrecarga Sistema:
-              <input
-                type="number"
-                name="sobrecarga_sistema"
-                value={newProcess.sobrecarga_sistema }
-                onChange={handleChange}
-                required
-              />
-            </label>
-          </div>
-        </>
-      )}
-      {/* <div>
-          <label>Tempo restante:
-            <input
-              type="number"
-              name="tempo_restante"
-              value={newProcess.tempo_restante}
-              onChange={handleChange}
-              required
-            />
-          </label>
-        </div>*/}
-        <div>
-          <label>Páginas (separadas por vírgula):
-            <input
-              type="text"
-              name="paginas"
-              value={newProcess.paginas}
-              onChange={handleChange}
-              required
-            />
-          </label>
-        </div>
+        
+            <div>
+              <label>Quantum Sistema:
+                <input
+                  type="number"
+                  name="quantum_sistema"
+                  value={newProcess.quantum_sistema}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+            </div>
+            <div>
+              <label>Sobrecarga Sistema:
+                <input
+                  type="number"
+                  name="sobrecarga_sistema"
+                  value={newProcess.sobrecarga_sistema}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+            </div>
+       
         <button type="submit">Add Process</button>
       </form>
+      <div>
+        <h2>Select Scheduler</h2>
+        <button onClick={() => setSelectedScheduler(1)}>FIFO</button>
+        <button onClick={() => setSelectedScheduler(3)}>Round Robin</button>
+        <button onClick={() => setSelectedScheduler(4)}>EDF</button>
+        <button onClick={() => setSelectedScheduler(2)}>SJF</button>
+      </div>
 
       <button onClick={createGraph}>Create Graph</button>
-      {image && <img src={image} alt="Process Graph" />}
-      
+      {image && <iframe src={image} width="1200" height="800" title="Process Graph" />}
+
       <div>
         <h2>Process List</h2>
         <ul>
           {processList.map((process) => (
             <li key={process.id}>
-              ID: {process.id}, Tempo Chegada: {process.tempo_chegada}, Tempo Execução: {process.tempo_execucao}, Deadline: {process.deadline}, Sobrecarga:{process.sobrecarga_sistema}, Quantum:{process.quantum_sistema}
+              ID: {process.id}, Tempo Chegada: {process.tempo_chegada}, Tempo Execução: {process.tempo_execucao}, Deadline: {process.deadline}, Sobrecarga: {process.sobrecarga_sistema}, Quantum: {process.quantum_sistema}
             </li>
           ))}
         </ul>
@@ -235,5 +209,4 @@ function App() {
     </div>
   );
 }
-
 export default App;

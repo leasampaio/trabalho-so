@@ -1,21 +1,32 @@
-from pydantic import BaseModel, model_validator
 from typing import List, Optional
 
+from pydantic import BaseModel, model_validator,Field
+
+
 class ProcessoModel(BaseModel):
-    id: Optional[int]=None
+    id: Optional[int] = None
     tempo_chegada: float
     tempo_execucao: float
     deadline: float
-    quantum_sistema: Optional[int]= None
-    sobrecarga_sistema: Optional[int]= None 
-    paginas_na_ram: List[int] = []
- 
-    @model_validator(mode='before')
+    quantum_sistema: Optional[int] = None
+    sobrecarga_sistema: Optional[int] = None
+    tempo_restante: float = Field(default=None)
+    contador_quantum: int = Field(default=0)
+
+    
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        # Se tempo_restante não for fornecido, inicialize com tempo_execucao
+        if self.tempo_restante is None:
+            self.tempo_restante = self.tempo_execucao
+
+    @model_validator(mode="before")
     def convert_values(cls, values):
-        for field in ['quantum_sistema', 'sobrecarga_sistema']:
+        for field in ["quantum_sistema", "sobrecarga_sistema"]:
             value = values.get(field)
             if isinstance(value, str):
-                if value.strip() == '':
+                if value.strip() == "":
                     values[field] = 0
                 else:
                     try:
@@ -25,4 +36,6 @@ class ProcessoModel(BaseModel):
             elif value is None:
                 values[field] = 0
         return values
- 
+    
+class GraphRequest(BaseModel):
+    tipo_escalonador: int
