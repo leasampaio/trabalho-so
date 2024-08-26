@@ -9,8 +9,8 @@ function App() {
     tempo_execucao: '',
     deadline: '',
     quantum_sistema: '',
-    sobrecarga_sistema: '',
-    paginas: ''
+    sobrecarga_sistema: ''
+   
   });
   const [selectedScheduler, setSelectedScheduler] = useState(1); // 1 for FIFO, 2 for Round Robin, 3 for EDF, 4 for SJF
 
@@ -36,7 +36,7 @@ function App() {
     e.preventDefault();
     const processData = {
       ...newProcess,
-      paginas: newProcess.paginas.split(',').map(Number)
+       
     };
 
     axios.post('http://localhost:8000/newprocess', processData)
@@ -48,7 +48,7 @@ function App() {
           deadline: '',
           quantum_sistema: '',
           sobrecarga_sistema: '',
-          paginas: ''
+          
         });
       })
       .catch(error => {
@@ -129,17 +129,6 @@ function App() {
               </label>
             </div>
        
-        <div>
-          <label>Páginas (separadas por vírgula):
-            <input
-              type="text"
-              name="paginas"
-              value={newProcess.paginas}
-              onChange={handleChange}
-              required
-            />
-          </label>
-        </div>
         <button type="submit">Add Process</button>
       </form>
       <div>
