@@ -1,6 +1,6 @@
 ## Requisitos
 
-Python 3.9.0 
+Python 3.10^ 
 
 ## Para instalar as dependencias 
 
