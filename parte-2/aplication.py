@@ -1,11 +1,7 @@
 import copy
 import matplotlib.pyplot as plt
+from bokeh.models import ColumnDataSource, FactorRange
 from bokeh.plotting import figure, show
-from bokeh.io import output_file
-from bokeh.models import ColumnDataSource, FactorRange, SingleIntervalTicker
-
-
-import pandas as pd
 
 
 class Processo:

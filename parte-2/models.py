@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import Optional
 
-from pydantic import BaseModel, model_validator,Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class ProcessoModel(BaseModel):
@@ -12,8 +12,6 @@ class ProcessoModel(BaseModel):
     sobrecarga_sistema: Optional[int] = None
     tempo_restante: float = Field(default=None)
     contador_quantum: int = Field(default=0)
-
-    
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -36,6 +34,7 @@ class ProcessoModel(BaseModel):
             elif value is None:
                 values[field] = 0
         return values
-    
+
+
 class GraphRequest(BaseModel):
     tipo_escalonador: int

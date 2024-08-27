@@ -1,23 +1,18 @@
-import base64
-import io
-
-import matplotlib.pyplot as plt
-from aplication import *
 from fastapi import APIRouter, Body
 
+from aplication import *
 from models import *
 
 router = APIRouter()
 
 # Rota para o método GET
- 
-list=[]
+
+list = []
 
 
 @router.post("/newprocess")
 async def get_escalonador(process: ProcessoModel = Body(...)):
 
-     
     process.id = len(list) + 1
     list.append(process)
 
@@ -26,31 +21,34 @@ async def get_escalonador(process: ProcessoModel = Body(...)):
 
 @router.get("/getprocesslist")
 async def get_process_list():
-    if len(list)!=0:
+    if len(list) != 0:
         return {"process": list}
 
-     
 
 @router.post("/creategraph")
 async def create_graph(request: GraphRequest):
     tipo_escalonador = request.tipo_escalonador
-    if (tipo_escalonador== 1):
+    
+    if tipo_escalonador == 1:
         processos = copy.deepcopy(list)
-        processo=fifo(processos)
-        plot=criar_grafico_gantt_bokeh(processo,tipo_escalonador)
+        processo = fifo(processos)
+        plot = criar_grafico_gantt_bokeh(processo, tipo_escalonador)
+        
         return plot
-    if (tipo_escalonador== 2):
+    
+    if tipo_escalonador == 2:
         processos = copy.deepcopy(list)
-        processo=sjf(processos)
-        plot=criar_grafico_gantt_bokeh(processo,tipo_escalonador)
+        processo = sjf(processos)
+        plot = criar_grafico_gantt_bokeh(processo, tipo_escalonador)
+        
         return plot
-    if (tipo_escalonador== 3):
+    
+    if tipo_escalonador == 3:
         print(tipo_escalonador)
         processos = copy.deepcopy(list)
-        processo=round_robin(processos)
+        processo = round_robin(processos)
         for item in processo:
             print(item)
-        plot=criar_grafico_gantt_bokeh(processo,tipo_escalonador)
+        plot = criar_grafico_gantt_bokeh(processo, tipo_escalonador)
+        
         return plot
-
-    
