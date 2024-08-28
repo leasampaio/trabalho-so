@@ -1,4 +1,5 @@
-from typing import Optional
+import string
+from typing import List, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -12,6 +13,9 @@ class ProcessoModel(BaseModel):
     sobrecarga_sistema: Optional[int] = None
     tempo_restante: float = Field(default=None)
     contador_quantum: int = Field(default=0)
+    contador_execucao:int = Field(default=0)
+
+    
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -37,4 +41,4 @@ class ProcessoModel(BaseModel):
 
 
 class GraphRequest(BaseModel):
-    tipo_escalonador: int
+    tipo_escalonador: str
