@@ -15,6 +15,7 @@ function App() {
    
   });
   const [selectedScheduler, setSelectedScheduler] = useState(1); // 1 for FIFO, 2 for Round Robin, 3 for EDF, 4 for SJF
+  const [submitted, setSubmitted] = useState(false); // Definindo o estado submitted
 
   useEffect(() => {
     axios.get('http://localhost:8000/getprocesslist')
@@ -74,15 +75,25 @@ function App() {
         <img src={logoUFBA}/>
         <div className='navbar'>
           <h1>Escalonador de Processos</h1>
+          <form onSubmit={handleSubmit}>
           <div className='input-global'>
+         
           <div className='quantum-sobrecarga'>
+          
             <div className='label'>
-              <label for="quantum" className='inputName'>Quantum</label>
-              <input type="number" id="quantum" name="quantum"/>
+              <label htmlfor="quantum" className='inputName'>Quantum</label>
+              
+              <input type="number" id="quantum" name="quantum_sistema"  value={newProcess.quantum_sistema}
+                  onChange={handleChange}  
+                  required
+                  disabled={submitted}/>
+           
             </div>
             <div className='label'>
               <label for="sobrecarga" className='inputName'>Sobrecarga</label>
-              <input type="number" id="sobrecarga" name="sobrecarga"/>
+              <input type="number" id="sobrecarga" name="sobrecarga_sistema" value={newProcess.sobrecarga_sistema}
+                  onChange={handleChange}
+                  required/>
             </div>
           </div>
           <div className='container'>
@@ -120,9 +131,12 @@ function App() {
           </div>
         
           </div>
+          </form>
         </div>
         <img src={logoIC}/>
+        
       </div>
+      
       <h1>Process Scheduler</h1>
 
       <form onSubmit={handleSubmit}>
@@ -160,37 +174,17 @@ function App() {
           </label>
         </div>
         
-            <div>
-              <label>Quantum Sistema:
-                <input
-                  type="number"
-                  name="quantum_sistema"
-                  value={newProcess.quantum_sistema}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-            </div>
-            <div>
-              <label>Sobrecarga Sistema:
-                <input
-                  type="number"
-                  name="sobrecarga_sistema"
-                  value={newProcess.sobrecarga_sistema}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-            </div>
+         
+             
        
         <button type="submit">Add Process</button>
       </form>
       <div>
         <h2>Select Scheduler</h2>
-        <button onClick={() => setSelectedScheduler('FIFO')}>FIFO</button>
-        <button onClick={() => setSelectedScheduler('RR')}>Round Robin</button>
-        <button onClick={() => setSelectedScheduler('EDF')}>EDF</button>
-        <button onClick={() => setSelectedScheduler('SJF')}>SJF</button>
+        <button onClick={() => setSelectedScheduler(1)}>FIFO</button>
+        <button onClick={() => setSelectedScheduler(3)}>Round Robin</button>
+        <button onClick={() => setSelectedScheduler(4)}>EDF</button>
+        <button onClick={() => setSelectedScheduler(2)}>SJF</button>
       </div>
 
       <button onClick={createGraph}>Create Graph</button>
