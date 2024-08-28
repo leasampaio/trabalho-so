@@ -55,5 +55,9 @@ async def create_graph(request: GraphRequest):
         processo=edf(processos)
         plot=criar_grafico_gantt_bokeh(processo,tipo_escalonador)
         return plot
-
     
+@router.post("/clear")
+async def limpara_lista():
+    global list
+    list = []  # Limpa a lista de processos
+    return "ok"
