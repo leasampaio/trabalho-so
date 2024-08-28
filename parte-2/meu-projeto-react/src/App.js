@@ -133,10 +133,10 @@ function App() {
       </form>
       <div>
         <h2>Select Scheduler</h2>
-        <button onClick={() => setSelectedScheduler(1)}>FIFO</button>
-        <button onClick={() => setSelectedScheduler(3)}>Round Robin</button>
-        <button onClick={() => setSelectedScheduler(4)}>EDF</button>
-        <button onClick={() => setSelectedScheduler(2)}>SJF</button>
+        <button onClick={() => setSelectedScheduler('FIFO')}>FIFO</button>
+        <button onClick={() => setSelectedScheduler('RR')}>Round Robin</button>
+        <button onClick={() => setSelectedScheduler('EDF')}>EDF</button>
+        <button onClick={() => setSelectedScheduler('SJF')}>SJF</button>
       </div>
 
       <button onClick={createGraph}>Create Graph</button>

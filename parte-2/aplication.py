@@ -1,7 +1,10 @@
 import copy
+from bokeh.io import output_file, save
+
 import matplotlib.pyplot as plt
 from bokeh.plotting import figure, show
-from bokeh.io import output_file
+from bokeh.io import curdoc
+
 from bokeh.models import ColumnDataSource, FactorRange, SingleIntervalTicker
 
 
@@ -549,6 +552,7 @@ def criar_grafico_gantt(resultados, tempo_total, tipo_escalonador):
 
     plt.show()
 
+from bokeh.layouts import column
 
 def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
 
@@ -567,7 +571,7 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
     for resultado in resultados:
         y_pos = y_positions[f"Processo {resultado['id']}"]
 
-        if tipo_escalonador in[1,2]:
+        if tipo_escalonador in['FIFO','SJF']:
             # Tempo de espera
             if resultado.get("tempo_espera") and resultado.get("tempo_chegada") > 0:
                 x.append(
@@ -589,7 +593,7 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
             legend_labels.append("Tempo de Execução")
          
 
-        if tipo_escalonador == 3:
+        if tipo_escalonador == 'RR':
             if resultado.get("tempo_espera") and resultado.get("tempo_chegada") > 0:
                 x.append(
                     resultado["tempo_chegada"]
@@ -630,7 +634,7 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
                     height.append(0.4)
                     colors.append("grey")
                     legend_labels.append("Sobrecarga")
-        if tipo_escalonador == 4:
+        if tipo_escalonador == "EDF":
             # Tempo de execução
             for execucao in resultado.get("tempo_execucao", []):
                 x.append(
@@ -679,10 +683,10 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
 
 
     titulos_escalonadores = {
-        1: "Gráfico de Gantt - Escalonador  FIFO\n Processos são executados na ordem em que chegam na fila de prontos.\n O primeiro processo a chegar é o primeiro a ser executado até a conclusão, sem interrupção.",
-        2: "Gráfico de Gantt - Escalonador  SJF\n O processo com o menor tempo estimado de execução é selecionado para execução primeiro.\n Isso reduz o tempo médio de espera, mas pode causar o problema de processos mais longos sendo retardados.:",
-        3: "Gráfico de Gantt - Escalonador  ROUND ROBIN\n Cada processo recebe um intervalo de tempo fixo (quantum)para execução. Após o quantum,\n o processo é colocado no final da fila e o próximo processo é executado, garantindo que todos os processos recebam tempo de CPU de forma equitativa.",
-        4: "Gráfico de Gantt - Escalonador  EDF\n Tarefas são escalonadas com base em seus prazos. A tarefa com o prazo mais próximo é escolhida para execução,\n garantindo que tarefas mais urgentes sejam concluídas primeiro."
+        'FIFO': "Gráfico de Gantt - Escalonador  FIFO\n Processos são executados na ordem em que chegam na fila de prontos.\n O primeiro processo a chegar é o primeiro a ser executado até a conclusão, sem interrupção.",
+        'SJF': "Gráfico de Gantt - Escalonador  SJF\n O processo com o menor tempo estimado de execução é selecionado para execução primeiro.\n Isso reduz o tempo médio de espera, mas pode causar o problema de processos mais longos sendo retardados.:",
+        'RR': "Gráfico de Gantt - Escalonador  ROUND ROBIN\n Cada processo recebe um intervalo de tempo fixo (quantum)para execução. Após o quantum,\n o processo é colocado no final da fila e o próximo processo é executado, garantindo que todos os processos recebam tempo de CPU de forma equitativa.",
+        "EDF": "Gráfico de Gantt - Escalonador  EDF\n Tarefas são escalonadas com base em seus prazos. A tarefa com o prazo mais próximo é escolhida para execução,\n garantindo que tarefas mais urgentes sejam concluídas primeiro."
     }
     titulo_grafico = titulos_escalonadores.get(tipo_escalonador, "Gráfico de Gantt")
     # Cria o ColumnDataSource
@@ -723,6 +727,22 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
     p.legend.title = "Legenda"
     p.legend.location = "top_left"
     p.x_range.start = 0
+     
+    if tipo_escalonador=='RR':
+        titulo='Round Robin'
+    elif tipo_escalonador=='FIFO':
+        titulo='FIFO'
+    elif tipo_escalonador=='EDF':
+        titulo='EDF'
+    elif tipo_escalonador=='SJF':
+        titulo='SJF'
+
+
+
+      
+     
+    output_file("grafico_gantt.html", title=titulo)
+
     show(p)
 
 
@@ -765,14 +785,14 @@ def main():
     # sjf_resultado=sjf(lista_processos[:])
     # criar_grafico_gantt_bokeh(sjf_resultado,2)
 
-    # print("\nRound Robin:")
-    # rr_resultado = round_robin(lista_processos)
+    print("\nRound Robin:")
+    rr_resultado = round_robin(lista_processos)
 
-    # criar_grafico_gantt_bokeh(rr_resultado, 3)
+    criar_grafico_gantt_bokeh(rr_resultado, 'RR')
 
-    print("\nEDF:")
-    edf1= edf(lista_processos[:])
-    criar_grafico_gantt_bokeh(edf1, 4)
+    # print("\nEDF:")
+    # edf1= edf(lista_processos[:])
+    # criar_grafico_gantt_bokeh(edf1, 4)
 
 if __name__ == "__main__":
     main()

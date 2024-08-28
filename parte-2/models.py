@@ -1,3 +1,4 @@
+import string
 from typing import List, Optional
 
 from pydantic import BaseModel, model_validator,Field
@@ -39,4 +40,4 @@ class ProcessoModel(BaseModel):
         return values
     
 class GraphRequest(BaseModel):
-    tipo_escalonador: int
+    tipo_escalonador: str
