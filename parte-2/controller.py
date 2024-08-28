@@ -52,5 +52,11 @@ async def create_graph(request: GraphRequest):
             print(item)
         plot=criar_grafico_gantt_bokeh(processo,tipo_escalonador)
         return plot
+    if (tipo_escalonador== 4):
+        print(tipo_escalonador)
+        processos = copy.deepcopy(list)
+        processo=edf(processos)
+        plot=criar_grafico_gantt_bokeh(processo,tipo_escalonador)
+        return plot
 
     
