@@ -187,18 +187,19 @@ function App() {
 
 
 
+
         <div className='form-buttons'>
-          <button type="submit">Add Process</button>
-          <button type="button" onClick={clearProcessList}>Clear Process List</button>
+          <button type="submit">Adicionar processo</button>
+          <button type="button" onClick={clearProcessList}>Limpar lista de processos</button>
         </div>
 
       </form>
 
-      <button onClick={createGraph}>Create Graph</button>
+      <button onClick={createGraph}>Criar Gráfico</button>
       {image && <iframe src={image} width="1200" height="800" title="Process Graph" />}
 
       <div>
-        <h2>Process List</h2>
+        <h2>Lista de processos</h2>
         <ul>
           {processList.map((process) => (
             <li key={process.id}>
