@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import logoUFBA from '../src/images/svg-ufba.svg';
+import logoIC from '../src/images/svg-ic.svg';
+import '../src/App.css'; // Importe o CSS
 
 function App() {
   const [processList, setProcessList] = useState([]);
@@ -10,9 +13,10 @@ function App() {
     deadline: '',
     quantum_sistema: '',
     sobrecarga_sistema: ''
-   
+
   });
   const [selectedScheduler, setSelectedScheduler] = useState(1); // 1 for FIFO, 2 for Round Robin, 3 for EDF, 4 for SJF
+  const [submitted, setSubmitted] = useState(false); // Definindo o estado submitted
 
   useEffect(() => {
     axios.get('http://localhost:8000/getprocesslist')
@@ -31,12 +35,21 @@ function App() {
       [name]: value
     });
   };
+  const clearProcessList = () => {
+    axios.post('http://localhost:8000/clear') // Ajuste a URL conforme necessário
+      .then(response => {
+        setProcessList([]); // Limpa a lista de processos no frontend
+      })
+      .catch(error => {
+        console.error('There was an error clearing the process list!', error);
+      });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const processData = {
       ...newProcess,
-       
+
     };
 
     axios.post('http://localhost:8000/newprocess', processData)
@@ -48,7 +61,7 @@ function App() {
           deadline: '',
           quantum_sistema: '',
           sobrecarga_sistema: '',
-          
+
         });
       })
       .catch(error => {
@@ -68,10 +81,76 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Process Scheduler</h1>
+      <div className='header'>
+        <img src={logoUFBA} />
+        <div className='navbar'>
+          <h1>Escalonador de Processos</h1>
 
+          <form onSubmit={handleSubmit}>
+            <div className='input-global'>
+
+              <div className='quantum-sobrecarga'>
+
+                <div className='label'>
+                  <label htmlfor="quantum" className='inputName'>Quantum</label>
+
+                  <input type="number" id="quantum" name="quantum_sistema" value={newProcess.quantum_sistema}
+                    onChange={handleChange}
+
+                  />
+
+                </div>
+                <div className='label'>
+                  <label for="sobrecarga" className='inputName'>Sobrecarga</label>
+                  <input type="number" id="sobrecarga" name="sobrecarga_sistema" value={newProcess.sobrecarga_sistema}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className='container'>
+                <div className='radio-tile-group'>
+
+                  <button
+                    className={`scheduler-button ${selectedScheduler === 'FIFO' ? 'selected' : ''}`}
+                    onClick={() => setSelectedScheduler('FIFO')}
+                  >
+                    FIFO
+                  </button>
+
+                  <button
+                    className={`scheduler-button ${selectedScheduler === 'SJF' ? 'selected' : ''}`}
+                    onClick={() => setSelectedScheduler('SJF')}
+                  >
+                    SJF
+                  </button>
+
+                  <button
+                    className={`scheduler-button ${selectedScheduler === 'RR' ? 'selected' : ''}`}
+                    onClick={() => setSelectedScheduler('RR')}
+                  >
+                    Round Robin
+                  </button>
+
+                  <button
+                    className={`scheduler-button ${selectedScheduler === 'EDF' ? 'selected' : ''}`}
+                    onClick={() => setSelectedScheduler('EDF')}
+                  >
+                    EDF
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </form>
+
+        </div>
+        <img src={logoIC} />
+
+      </div>
+
+
+      <div></div>
       <form onSubmit={handleSubmit}>
-        <h2>Add New Process</h2>
         <div>
           <label>Tempo Chegada:
             <input
@@ -105,39 +184,15 @@ function App() {
             />
           </label>
         </div>
-        
-            <div>
-              <label>Quantum Sistema:
-                <input
-                  type="number"
-                  name="quantum_sistema"
-                  value={newProcess.quantum_sistema}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-            </div>
-            <div>
-              <label>Sobrecarga Sistema:
-                <input
-                  type="number"
-                  name="sobrecarga_sistema"
-                  value={newProcess.sobrecarga_sistema}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-            </div>
-       
-        <button type="submit">Add Process</button>
+
+
+
+        <div className='form-buttons'>
+          <button type="submit">Add Process</button>
+          <button type="button" onClick={clearProcessList}>Clear Process List</button>
+        </div>
+
       </form>
-      <div>
-        <h2>Select Scheduler</h2>
-        <button onClick={() => setSelectedScheduler('FIFO')}>FIFO</button>
-        <button onClick={() => setSelectedScheduler('RR')}>Round Robin</button>
-        <button onClick={() => setSelectedScheduler('EDF')}>EDF</button>
-        <button onClick={() => setSelectedScheduler('SJF')}>SJF</button>
-      </div>
 
       <button onClick={createGraph}>Create Graph</button>
       {image && <iframe src={image} width="1200" height="800" title="Process Graph" />}
