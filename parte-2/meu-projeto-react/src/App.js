@@ -71,20 +71,36 @@ function App() {
   return (
     <div className="App">
       <div className='header'>
-        <img src={logoUFBA}/>
+        <img src={logoUFBA} alt='logo_UFBA'/>
         <div className='navbar'>
           <h1>Escalonador de Processos</h1>
           <div className='input-global'>
-          <div className='quantum-sobrecarga'>
+          <form onSubmit={handleSubmit} className='quantum-sobrecarga'>
+
             <div className='label'>
               <label for="quantum" className='inputName'>Quantum</label>
-              <input type="number" id="quantum" name="quantum"/>
+              <input
+                type="number"
+                id="quantum"
+                name="quantum_sistema"
+                value={newProcess.quantum_sistema}
+                onChange={handleChange}
+                required
+              />
             </div>
             <div className='label'>
               <label for="sobrecarga" className='inputName'>Sobrecarga</label>
-              <input type="number" id="sobrecarga" name="sobrecarga"/>
+              <input
+                type="number"
+                id="sobrecarga"
+                name="sobrecarga_sistema"
+                value={newProcess.sobrecarga_sistema}
+                onChange={handleChange}
+                required
+              />
             </div>
-          </div>
+            
+          </form>
           <div className='container'>
             <div className='radio-tile-group'>
 
@@ -121,13 +137,12 @@ function App() {
         
           </div>
         </div>
-        <img src={logoIC}/>
+        <img src={logoIC} alt='logo_IC'/>
       </div>
-      <h1>Process Scheduler</h1>
 
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Tempo Chegada:
+          <label>Tempo de chegada:
             <input
               type="number"
               name="tempo_chegada"
@@ -138,7 +153,7 @@ function App() {
           </label>
         </div>
         <div>
-          <label>Tempo Execução:
+          <label>Tempo de execução:
             <input
               type="number"
               name="tempo_execucao"
@@ -159,29 +174,6 @@ function App() {
             />
           </label>
         </div>
-        
-            <div>
-              <label>Quantum Sistema:
-                <input
-                  type="number"
-                  name="quantum_sistema"
-                  value={newProcess.quantum_sistema}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-            </div>
-            <div>
-              <label>Sobrecarga Sistema:
-                <input
-                  type="number"
-                  name="sobrecarga_sistema"
-                  value={newProcess.sobrecarga_sistema}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-            </div>
        
         <button type="submit">Add Process</button>
       </form>
