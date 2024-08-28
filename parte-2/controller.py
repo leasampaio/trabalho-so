@@ -28,22 +28,19 @@ async def get_process_list():
 @router.post("/creategraph")
 async def create_graph(request: GraphRequest):
     tipo_escalonador = request.tipo_escalonador
-    
-    if tipo_escalonador == 1:
+    if (tipo_escalonador== 'FIFO'):
         processos = copy.deepcopy(list)
         processo = fifo(processos)
         plot = criar_grafico_gantt_bokeh(processo, tipo_escalonador)
         
         return plot
-    
-    if tipo_escalonador == 2:
+    if (tipo_escalonador== 'SJF'):
         processos = copy.deepcopy(list)
         processo = sjf(processos)
         plot = criar_grafico_gantt_bokeh(processo, tipo_escalonador)
         
         return plot
-    
-    if tipo_escalonador == 3:
+    if (tipo_escalonador== 'RR'):
         print(tipo_escalonador)
         processos = copy.deepcopy(list)
         processo = round_robin(processos)
@@ -52,3 +49,11 @@ async def create_graph(request: GraphRequest):
         plot = criar_grafico_gantt_bokeh(processo, tipo_escalonador)
         
         return plot
+    if (tipo_escalonador== 'EDF'):
+        print(tipo_escalonador)
+        processos = copy.deepcopy(list)
+        processo=edf(processos)
+        plot=criar_grafico_gantt_bokeh(processo,tipo_escalonador)
+        return plot
+
+    

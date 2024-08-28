@@ -1,7 +1,15 @@
 import copy
+from bokeh.io import output_file, save
+
 import matplotlib.pyplot as plt
 from bokeh.models import ColumnDataSource, FactorRange
 from bokeh.plotting import figure, show
+from bokeh.io import curdoc
+
+from bokeh.models import ColumnDataSource, FactorRange, SingleIntervalTicker
+
+
+import pandas as pd
 
 
 class Processo:
@@ -22,6 +30,7 @@ class Processo:
         self.sobrecarga_sistema = sobrecarga_sistema
         self.tempo_restante = tempo_execucao
         self.contador_quantum = 0
+        self.contador_execucao = 0
 
     def __repr__(self):
         return (
@@ -244,10 +253,23 @@ def edf(processos):
     copia_processos = copy.deepcopy(processos)
     tempo_atual = 0
     turnaround_total = 0
-    tempo_espera = 0
     resultados = []
-    lista_com_dados = []
     lista_aux = []
+
+    dados_processos = {
+        p.id: {
+            "tempo_execucao": [],  # Lista de tuplas (inicio, fim) para cada período de execução
+            "tempo_espera": [],  # Lista de tuplas (inicio, fim) para cada período de espera
+            "turnaround": 0,
+            "sobrecarga": [],  # Lista de tuplas (inicio, fim) para cada período de sobrecarga
+            "tempo_chegada": p.tempo_chegada,
+            "inicio": None,
+            "fim": None,
+            "deadline": p.deadline,
+            "estouro_deadline": False,
+        }
+        for p in processos
+    }
 
     while copia_processos:
         # Filtra processos que já chegaram e estão prontos para execução
@@ -263,18 +285,41 @@ def edf(processos):
                 continue
             else:
                 break
+
         # Seleciona o processo com o menor tempo de deadline entre os prontos
         processo = min(processos_prontos, key=lambda p: p.deadline)
 
         if processo.tempo_restante == 0:
             processo.tempo_restante = processo.tempo_execucao
+
         inicio_execucao = tempo_atual
+        tempo_execucao = min(processo.quantum_sistema, processo.tempo_restante)
+        fim_execucao = tempo_atual + tempo_execucao
+
+        for p in processos_prontos:
+            if p.id != processo.id:
+                if tempo_atual > p.tempo_chegada and p.contador_execucao == 0:
+                    gap_espera = 0
+                    gap_espera = tempo_atual - p.tempo_chegada
+                    inicio_espera = tempo_atual - gap_espera
+                    dados_processos[p.id]["tempo_espera"].append(
+                        {"inicio": inicio_espera, "fim": fim_execucao}
+                    )
+                else:
+                    inicio_espera = tempo_atual
+                    dados_processos[p.id]["tempo_espera"].append(
+                        {"inicio": inicio_espera, "fim": fim_execucao}
+                    )
+
         # Decrementa do tempo restante
         while processo.tempo_restante > 0:
-            processo.tempo_restante -= 1
-            processo.contador_quantum += 1
-            tempo_atual += 1
+            processo.contador_execucao += 1
+            processo.tempo_restante -= tempo_execucao
+            tempo_atual += tempo_execucao
 
+            dados_processos[processo.id]["tempo_execucao"].append(
+                {"inicio": inicio_execucao, "fim": fim_execucao}
+            )
             processos_prontos = [
                 p for p in copia_processos if p.tempo_chegada <= tempo_atual
             ]
@@ -285,40 +330,89 @@ def edf(processos):
                     tempo_atual >= processo_aux.tempo_chegada
                     and processo.deadline > processo_aux.deadline
                 ):
-
+                    if processo.tempo_chegada != 0:
+                        tempo_espera = tempo_atual - processo.tempo_execucao
                     lista_aux.append(processo)
+                    tempo_espera_inicio = tempo_atual
                     copia_processos.remove(processo)
                     tempo_atual += processo.sobrecarga_sistema
 
+                    for p in processos_prontos:
+                        if p.id != processo.id:
+                            if tempo_atual > p.tempo_chegada and p.contador_execucao == 0:
+                                gap_espera = 0
+                                gap_espera = tempo_atual - p.tempo_chegada
+                                inicio_espera = tempo_atual - gap_espera
+                                dados_processos[p.id]["tempo_espera"].append(
+                                    {"inicio": tempo_espera_inicio, "fim": tempo_atual}
+                                )
+                            else:
+                                inicio_espera = tempo_atual
+                                dados_processos[p.id]["tempo_espera"].append(
+                                    {"inicio": inicio_espera, "fim": fim_execucao}
+                                )
+                    dados_processos[processo.id]["sobrecarga"].append(
+                        {
+                            "inicio": tempo_atual - processo.sobrecarga_sistema,
+                            "fim": tempo_atual,
+                        }
+                    )
+
                     break
-            # checa se o processo atingiu o quantum
-            if (
-                processo.contador_quantum == processo.quantum_sistema
-                and processo_aux.tempo_restante != 0
-            ):
+
+            # Checa se o processo atingiu o quantum
+            if processo_aux.tempo_restante != 0:
+                tempo_espera_inicio = tempo_atual
                 tempo_atual += processo.sobrecarga_sistema
                 processo.contador_quantum = 0
 
-                break
+                dados_processos[processo.id]["sobrecarga"].append(
+                    {
+                        "inicio": tempo_atual - processo.sobrecarga_sistema,
+                        "fim": tempo_atual,
+                    }
+                )
+                for p in processos_prontos:
+                    if p.id != processo.id:
+                        if tempo_atual > p.tempo_chegada and p.contador_execucao == 0:
+                            gap_espera = 0
+                            gap_espera = tempo_atual - p.tempo_chegada
+                            inicio_espera = tempo_atual - gap_espera
+                            dados_processos[p.id]["tempo_espera"].append(
+                                {"inicio": inicio_espera, "fim": fim_execucao}
+                            )
+                        else:
+                            inicio_espera = tempo_atual
+                            dados_processos[p.id]["tempo_espera"].append(
+                                {"inicio": tempo_espera_inicio, "fim": tempo_atual}
+                            )
+                dados_processos[processo.id]["tempo_execucao"].append(
+                    {"inicio": inicio_execucao, "fim": fim_execucao}
+                )
 
-            else:
-                # Caso não haja processos prontos, continue executando o processo atual
-                continue
+                break
 
         # Remove o processo selecionado da lista
         if processo.tempo_restante == 0:
+            processos_prontos.remove(processo)
             copia_processos.remove(processo)
 
             turnaround_processo = tempo_atual - processo.tempo_chegada
             tempo_espera = turnaround_processo - processo.tempo_execucao
             turnaround_total += turnaround_processo
-            resultados.append(
-                (
-                    f"processo_id= {processo.id},tempo_espera= {tempo_espera}, turnaround_processo = {turnaround_processo}"
-                )
-            )
 
-            # print(tempo_atual)
+            dados_processos[processo.id]["turnaround"] = turnaround_processo
+            dados_processos[processo.id]["tempo_execucao"].append(
+                {"inicio": inicio_execucao, "fim": tempo_atual}
+            )
+            dados_processos[processo.id]["inicio"] = inicio_execucao
+            dados_processos[processo.id]["fim"] = tempo_atual
+            dados_processos[processo.id]["id"] = processo.id
+            if turnaround_processo>processo.deadline:
+                dados_processos[processo.id]["estouro_deadline"] = True
+
+            resultados.append(dados_processos[processo.id])
+
             print(
                 f"Executando {processo} tempo_espera {tempo_espera} turnaround_processo = {turnaround_processo}"
             )
@@ -327,9 +421,13 @@ def edf(processos):
         copia_processos.extend(lista_aux)
         lista_aux.clear()
 
-    resultados.append(turnaround_total / len(processos))
+    # Calcula a média de turnaround e adiciona ao resultado final
 
+    media_turnaround = turnaround_total / len(processos) if processos else 0
+    print(media_turnaround)
+    # Mostra os dados dos processos
     print(resultados)
+
     return resultados
 
 
@@ -455,6 +553,7 @@ def criar_grafico_gantt(resultados, tempo_total, tipo_escalonador):
 
     plt.show()
 
+from bokeh.layouts import column
 
 def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
 
@@ -473,7 +572,7 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
     for resultado in resultados:
         y_pos = y_positions[f"Processo {resultado['id']}"]
 
-        if tipo_escalonador == 1:
+        if tipo_escalonador in['FIFO','SJF']:
             # Tempo de espera
             if resultado.get("tempo_espera") and resultado.get("tempo_chegada") > 0:
                 x.append(
@@ -493,28 +592,9 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
             height.append(0.4)
             colors.append("orange")
             legend_labels.append("Tempo de Execução")
-        if tipo_escalonador == 2:
-            # Tempo de espera
-            if resultado.get("tempo_espera") and resultado.get("tempo_chegada") > 0:
-                x.append(
-                    resultado["inicio"]
-                    + (resultado["tempo_espera"] - resultado["tempo_chegada"]) / 2
-                )
-                y.append(y_pos)
-                width.append(resultado["tempo_espera"] - resultado["tempo_chegada"])
-                height.append(0.4)
-                colors.append("blue")
-                legend_labels.append("Tempo de Espera")
+         
 
-            # Tempo de execução
-            x.append(resultado["tempo_espera"] + (resultado["tempo_execucao"]) / 2)
-            y.append(y_pos)
-            width.append(resultado["tempo_execucao"])
-            height.append(0.4)
-            colors.append("orange")
-            legend_labels.append("Tempo de Execução")
-
-        if tipo_escalonador == 3:
+        if tipo_escalonador == 'RR':
             if resultado.get("tempo_espera") and resultado.get("tempo_chegada") > 0:
                 x.append(
                     resultado["tempo_chegada"]
@@ -555,7 +635,61 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
                     height.append(0.4)
                     colors.append("grey")
                     legend_labels.append("Sobrecarga")
+        if tipo_escalonador == "EDF":
+            # Tempo de execução
+            for execucao in resultado.get("tempo_execucao", []):
+                x.append(
+                    execucao["inicio"] + (execucao["fim"] - execucao["inicio"]) / 2
+                )
+                y.append(y_pos)
+                width.append(execucao["fim"] - execucao["inicio"])
+                height.append(0.4)
 
+                colors.append("orange")
+                legend_labels.append("Tempo de Execução")
+
+            # Linha vertical para estourar o deadline
+            
+             
+            if resultado.get("estouro_deadline"):
+                        x.append(resultado["deadline"] + (resultado["fim"] - resultado["deadline"])/2)
+                        y.append(y_pos +0.4)
+                        width.append(resultado["fim"] - resultado["deadline"])
+                        height.append(0.01)
+                        colors.append("red")
+                        legend_labels.append("Estouro do Deadline")
+             
+            
+
+            # Sobreposições de sobrecarga
+            if "sobrecarga" in resultado and len(resultado["sobrecarga"]) > 0:
+                for sobrecarga in resultado["sobrecarga"]:
+                    x.append(
+                        sobrecarga["inicio"]
+                        + (sobrecarga["fim"] - sobrecarga["inicio"]) / 2
+                    )
+                    y.append(y_pos)
+                    width.append(sobrecarga["fim"] - sobrecarga["inicio"])
+                    height.append(0.4)
+                    colors.append("grey")
+                    legend_labels.append("Sobrecarga")
+
+            for espera in resultado.get("tempo_espera", []):
+                x.append(espera["inicio"] + (espera["fim"] - espera["inicio"]) / 2)
+                y.append(y_pos)
+                width.append(espera["fim"] - espera["inicio"])
+                height.append(0.4)
+                colors.append("blue")
+                legend_labels.append("Tempo de Espera")
+
+
+    titulos_escalonadores = {
+        'FIFO': "Gráfico de Gantt - Escalonador  FIFO\n Processos são executados na ordem em que chegam na fila de prontos.\n O primeiro processo a chegar é o primeiro a ser executado até a conclusão, sem interrupção.",
+        'SJF': "Gráfico de Gantt - Escalonador  SJF\n O processo com o menor tempo estimado de execução é selecionado para execução primeiro.\n Isso reduz o tempo médio de espera, mas pode causar o problema de processos mais longos sendo retardados.:",
+        'RR': "Gráfico de Gantt - Escalonador  ROUND ROBIN\n Cada processo recebe um intervalo de tempo fixo (quantum)para execução. Após o quantum,\n o processo é colocado no final da fila e o próximo processo é executado, garantindo que todos os processos recebam tempo de CPU de forma equitativa.",
+        "EDF": "Gráfico de Gantt - Escalonador  EDF\n Tarefas são escalonadas com base em seus prazos. A tarefa com o prazo mais próximo é escolhida para execução,\n garantindo que tarefas mais urgentes sejam concluídas primeiro."
+    }
+    titulo_grafico = titulos_escalonadores.get(tipo_escalonador, "Gráfico de Gantt")
     # Cria o ColumnDataSource
     source = ColumnDataSource(
         data=dict(
@@ -571,8 +705,8 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
     # Cria o gráfico
     p = figure(
         height=800,
-        width=1200,
-        title="Gráfico de Gantt",
+        width=1680,
+        title=titulo_grafico,
         x_axis_label="Tempo",
         y_axis_label="Processos",
         y_range=FactorRange(*y_labels),
@@ -594,6 +728,22 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
     p.legend.title = "Legenda"
     p.legend.location = "top_left"
     p.x_range.start = 0
+     
+    if tipo_escalonador=='RR':
+        titulo='Round Robin'
+    elif tipo_escalonador=='FIFO':
+        titulo='FIFO'
+    elif tipo_escalonador=='EDF':
+        titulo='EDF'
+    elif tipo_escalonador=='SJF':
+        titulo='SJF'
+
+
+
+      
+     
+    output_file("grafico_gantt.html", title=titulo)
+
     show(p)
 
 
@@ -610,7 +760,7 @@ def main():
     lista_processos = [
         Processo(1, 0, 15, 45, quantum_sistema, sobrecarga_sistema),
         Processo(2, 3, 4, 9, quantum_sistema, sobrecarga_sistema),
-        Processo(3, 6, 10, 22, quantum_sistema, sobrecarga_sistema),
+        Processo(3, 6, 10, 10, quantum_sistema, sobrecarga_sistema),
         Processo(4, 9, 10, 35, quantum_sistema, sobrecarga_sistema),
     ]
 
@@ -630,23 +780,20 @@ def main():
 
     # print("FIFO:")
     # fifo_resultado = fifo(lista_processos)
-
+    # criar_grafico_gantt_bokeh(fifo_resultado, 1)
     # criar_grafico_gantt_bokeh(fifo_resultado, 1)
     # print("\nSJF:")
     # sjf_resultado=sjf(lista_processos[:])
-    # criar_grafico_gantt(sjf_resultado,60,1)
+    # criar_grafico_gantt_bokeh(sjf_resultado,2)
 
-    # print("\nRound Robin:")
-    # rr_resultado = round_robin(lista_processos)
+    print("\nRound Robin:")
+    rr_resultado = round_robin(lista_processos)
 
-    # criar_grafico_gantt_bokeh(rr_resultado, 3)
+    criar_grafico_gantt_bokeh(rr_resultado, 'RR')
 
     # print("\nEDF:")
-    # edf(lista_processos[:])
-    # criar_grafico_gantt(rr_resultado,60,1)
-    # criar_grafico_gantt(lista_processos, 20)
-    # criar_grafico_memoria(memoria.ram, memoria.disco)
-
+    # edf1= edf(lista_processos[:])
+    # criar_grafico_gantt_bokeh(edf1, 4)
 
 if __name__ == "__main__":
     main()
