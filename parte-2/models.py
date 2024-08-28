@@ -12,6 +12,7 @@ class ProcessoModel(BaseModel):
     sobrecarga_sistema: Optional[int] = None
     tempo_restante: float = Field(default=None)
     contador_quantum: int = Field(default=0)
+    contador_execucao:int = Field(default=0)
 
     
 
