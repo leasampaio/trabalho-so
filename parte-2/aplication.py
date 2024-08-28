@@ -648,10 +648,9 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
              
             if resultado.get("estouro_deadline"):
                         x.append(resultado["deadline"] + (resultado["fim"] - resultado["deadline"])/2)
-                        print(resultado["fim"], '****************************')
-                        y.append(y_pos)
+                        y.append(y_pos +0.4)
                         width.append(resultado["fim"] - resultado["deadline"])
-                        height.append(0.4)
+                        height.append(0.01)
                         colors.append("red")
                         legend_labels.append("Estouro do Deadline")
              
@@ -766,14 +765,14 @@ def main():
     # sjf_resultado=sjf(lista_processos[:])
     # criar_grafico_gantt_bokeh(sjf_resultado,2)
 
-    print("\nRound Robin:")
-    rr_resultado = round_robin(lista_processos)
+    # print("\nRound Robin:")
+    # rr_resultado = round_robin(lista_processos)
 
-    criar_grafico_gantt_bokeh(rr_resultado, 3)
+    # criar_grafico_gantt_bokeh(rr_resultado, 3)
 
-    # print("\nEDF:")
-    # edf1= edf(lista_processos[:])
-    # criar_grafico_gantt_bokeh(edf1, 4)
+    print("\nEDF:")
+    edf1= edf(lista_processos[:])
+    criar_grafico_gantt_bokeh(edf1, 4)
 
 if __name__ == "__main__":
     main()
