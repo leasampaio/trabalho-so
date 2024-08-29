@@ -1,6 +1,10 @@
+import copy
 from fastapi import APIRouter, Body
-
-from aplication import *
+from service.plotagem import criar_grafico_gantt_bokeh
+from service.fifo import fifo
+from service.edf import edf
+from service.rr import round_robin
+from service.sjf import sjf
 from models import *
 
 router = APIRouter()
