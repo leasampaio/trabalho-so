@@ -88,13 +88,6 @@ def round_robin(processos):
 
             dados_processos[processo_atual.id]["fim"] = tempo_atual
 
-            # dados_processos[processo_atual.id]["tempo_espera"].append(
-            #     {
-            #         "inicio": tempo_atual,
-            #         "fim":  tempo_execucao+tempo_atual,
-            #     }
-            # )
-
         # Se o processo terminou, calcula os tempos de turnaround e espera
         if processo_atual.tempo_restante == 0:
             turnaround_processo = tempo_atual - processo_atual.tempo_chegada
