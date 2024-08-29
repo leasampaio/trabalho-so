@@ -48,14 +48,14 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const processData = {
-		tempo_chegada: newProcess.tempo_chegada,
-		tempo_execucao: newProcess.tempo_execucao,
-		deadline: newProcess.deadline,
-		quantum_sistema: newProcess.quantum_sistema, // Manter os valores de quantum e sobrecarga
-		sobrecarga_sistema: newProcess.sobrecarga_sistema // Manter os valores de quantum e sobrecarga
-	  };
+      tempo_chegada: newProcess.tempo_chegada,
+      tempo_execucao: newProcess.tempo_execucao,
+      deadline: newProcess.deadline,
+      quantum_sistema: newProcess.quantum_sistema, // Manter os valores de quantum e sobrecarga
+      sobrecarga_sistema: newProcess.sobrecarga_sistema // Manter os valores de quantum e sobrecarga
+    };
 
-	  axios.post('http://localhost:8000/newprocess', processData)
+    axios.post('http://localhost:8000/newprocess', processData)
       .then(response => {
         setProcessList(response.data.process);
         setNewProcess((prevState) => ({
