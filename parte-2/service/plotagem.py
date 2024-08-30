@@ -129,11 +129,16 @@ def criar_grafico_gantt_bokeh(resultados, tipo_escalonador):
                 colors.append("blue")
                 legend_labels.append("Tempo de Espera")
 
+    if len(resultados)>0:
+        ultimo_turnaroundmedio = resultados[-1]['turnaroundmedio']
+    else:
+        ultimo_turnaroundmedio=0
+
     titulos_escalonadores = {
-        "FIFO": "Gráfico de Gantt - Escalonador  FIFO\n Processos são executados na ordem em que chegam na fila de prontos.\n O primeiro processo a chegar é o primeiro a ser executado até a conclusão, sem interrupção.",
-        "SJF": "Gráfico de Gantt - Escalonador  SJF\n O processo com o menor tempo estimado de execução é selecionado para execução primeiro.\n Isso reduz o tempo médio de espera, mas pode causar o problema de processos mais longos sendo retardados.:",
-        "RR": "Gráfico de Gantt - Escalonador  ROUND ROBIN\n Cada processo recebe um intervalo de tempo fixo (quantum)para execução. Após o quantum,\n o processo é colocado no final da fila e o próximo processo é executado, garantindo que todos os processos recebam tempo de CPU de forma equitativa.",
-        "EDF": "Gráfico de Gantt - Escalonador  EDF\n Tarefas são escalonadas com base em seus prazos. A tarefa com o prazo mais próximo é escolhida para execução,\n garantindo que tarefas mais urgentes sejam concluídas primeiro.",
+        "FIFO": "Gráfico de Gantt - Escalonador  FIFO\n Processos são executados na ordem em que chegam na fila de prontos.\n O primeiro processo a chegar é o primeiro a ser executado até a conclusão, sem interrupção.\n\n\n " f"Tunaround medio = {ultimo_turnaroundmedio:.2f}",
+        "SJF": "Gráfico de Gantt - Escalonador  SJF\n O processo com o menor tempo estimado de execução é selecionado para execução primeiro.\n Isso reduz o tempo médio de espera, mas pode causar o problema de processos mais longos sendo retardados.\n\n\n"  f"Tunaround medio = {ultimo_turnaroundmedio:.2f}",
+        "RR": "Gráfico de Gantt - Escalonador  ROUND ROBIN\n Cada processo recebe um intervalo de tempo fixo (quantum)para execução. Após o quantum,\n o processo é colocado no final da fila e o próximo processo é executado, garantindo que todos os processos recebam tempo de CPU de forma equitativa.\n\n\n"  f"Tunaround medio = {ultimo_turnaroundmedio:.2f}",
+        "EDF": "Gráfico de Gantt - Escalonador  EDF\n Tarefas são escalonadas com base em seus prazos. A tarefa com o prazo mais próximo é escolhida para execução,\n garantindo que tarefas mais urgentes sejam concluídas primeiro.\n\n\n" f"Tunaround medio = {ultimo_turnaroundmedio:.2f}",
     }
     titulo_grafico = titulos_escalonadores.get(tipo_escalonador, "Gráfico de Gantt")
     # Cria o ColumnDataSource
