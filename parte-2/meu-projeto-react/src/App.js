@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect  ,useRef} from 'react';
 import axios from 'axios';
 import logoUFBA from '../src/images/svg-ufba.svg';
 import logoIC from '../src/images/svg-ic.svg';
@@ -20,7 +20,7 @@ function App() {
   });
   const [selectedScheduler, setSelectedScheduler] = useState(1); // 1 for FIFO, 2 for Round Robin, 3 for EDF, 4 for SJF
   const [submitted, setSubmitted] = useState(false); // Definindo o estado submitted
-
+  const tempoChegadaRef = useRef(null);
 
   const [showTurnaroundBox, setShowTurnaroundBox] = useState(false);
 
@@ -102,7 +102,14 @@ function App() {
           tempo_execucao: '',
           deadline: ''
         }));
+        if (tempoChegadaRef.current) {
+          setTimeout(() => {
+            tempoChegadaRef.current.focus();
+          }, 0); // Adiciona um pequeno atraso para garantir que o DOM foi atualizado
+        }
+        
       })
+      
       .catch(error => {
         console.error('There was an error adding the process!', error);
       });
@@ -202,6 +209,7 @@ function App() {
               value={newProcess.tempo_chegada}
               onChange={handleChange}
               required
+              ref={tempoChegadaRef} // Adiciona a referência aqui
             />
           </label>
         </div>
