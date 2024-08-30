@@ -37,7 +37,7 @@ def sjf(processos):
                 "fim": processo.tempo_execucao,
                 "tempo_espera": tempo_espera + processo.tempo_chegada,
                 "turnaround": turnaround_processo,
-                "Turnaround_Medio": turnaround_total / len(processos),
+                "turnaroundmedio": turnaround_total / len(processos),
                 "tempo_chegada": processo.tempo_chegada,
                 "tempo_execucao": processo.tempo_execucao,
             }

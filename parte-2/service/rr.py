@@ -4,6 +4,7 @@ def round_robin(processos):
     turnaround_total = 0
     resultados = []
     fila_processos = []
+    qtd_processos=len(processos)
 
     dados_processos = {
         p.id: {
@@ -12,6 +13,7 @@ def round_robin(processos):
             "turnaround": 0,
             "sobrecarga": [],  # Lista de tuplas (inicio, fim) para cada período de sobrecarga
             "tempo_chegada": 0,
+            "turnaroundmedio":0
         }
         for p in processos
     }
@@ -91,6 +93,8 @@ def round_robin(processos):
         # Se o processo terminou, calcula os tempos de turnaround e espera
         if processo_atual.tempo_restante == 0:
             turnaround_processo = tempo_atual - processo_atual.tempo_chegada
+            turnaround_total += turnaround_processo
+            dados_processos[processo_atual.id]["turnaround"] = turnaround_processo
             tempo_espera = turnaround_processo - processo_atual.tempo_execucao
             dados_processos[processo_atual.id]["tempo_espera"].append(
                 {
@@ -101,7 +105,7 @@ def round_robin(processos):
 
             # Atualiza o dicionário do processo com os dados finais
 
-            dados_processos[processo_atual.id]["turnaround"] = turnaround_processo
+            dados_processos[processo_atual.id]["turnaroundmedio"] = turnaround_total/qtd_processos
 
             # Adiciona os dados do processo aos resultados
 

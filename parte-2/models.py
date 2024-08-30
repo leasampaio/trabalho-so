@@ -42,3 +42,6 @@ class ProcessoModel(BaseModel):
 
 class GraphRequest(BaseModel):
     tipo_escalonador: str
+
+class calc(BaseModel):
+    tipo_escalonador: str
