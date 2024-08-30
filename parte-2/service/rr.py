@@ -115,4 +115,4 @@ def round_robin(processos):
     media_turnaround = turnaround_total / len(processos) if processos else 0
 
     print("Resultados:", resultados)
-    return resultados
+    return resultados, turnaround_total

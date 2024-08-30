@@ -40,4 +40,4 @@ def fifo(processos):
     print(f"turnaround_total = {turnaround_total}")
 
     print(resultados)
-    return resultados
+    return resultados, turnaround_total
