@@ -69,6 +69,11 @@
     cursor: pointer;
     font-size: 16px;
     margin-right: 10px;
+    margin-bottom: 15px;
+  }
+  
+  h2{
+    margin-bottom: 15px;
   }
   
   button:hover {
@@ -174,6 +179,22 @@
     background-color: #f44336; /* Vermelho */
     color: white;
   }
+
+  
+  .turnaround-container.expanded {
+    max-height: 500px; /* Altura suficiente para mostrar os dados */
+  }
+  .turnaround-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .turnaround-list-item {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+  }
+  
   
   /* Adicione mais estilos conforme necessário */
   

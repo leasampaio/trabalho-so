@@ -65,3 +65,22 @@ async def limpara_lista():
     global list
     list = []  # Limpa a lista de processos
     return "ok"
+
+
+@router.post("/getturnaroundlist")
+async def calcturnaround():
+        turnaroundList=[]
+        processos = copy.deepcopy(list)
+        processo_fifo = fifo(processos)
+        processo_edf=edf(processos)
+        processo_sjf=sjf(processos)
+        processo_rr=round_robin(processos)
+        turnaroundmedio_fifo= processo_fifo[-1]["turnaroundmedio"]
+        turnaroundmedio_edf= processo_edf[-1]["turnaroundmedio"]
+        turnaroundmedio_sjf= processo_sjf[-1]["turnaroundmedio"]
+        turnaroundmedio_rr= processo_rr[-1]["turnaroundmedio"]
+        turnaroundList.extend([turnaroundmedio_fifo,turnaroundmedio_sjf,turnaroundmedio_rr,turnaroundmedio_edf])
+        return turnaroundList
+        
+        
+

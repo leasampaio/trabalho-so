@@ -6,6 +6,9 @@ import '../src/App.css'; // Importe o CSS
 
 function App() {
   const [processList, setProcessList] = useState([]);
+  const [turnaroundList, setTurnaroundList] = useState([]);
+  const [loading, setLoading] = useState(false); // Estado para indicar carregamento
+  const [error, setError] = useState(null); //
   const [image, setImage] = useState('');
   const [newProcess, setNewProcess] = useState({
     tempo_chegada: '',
@@ -17,6 +20,38 @@ function App() {
   });
   const [selectedScheduler, setSelectedScheduler] = useState(1); // 1 for FIFO, 2 for Round Robin, 3 for EDF, 4 for SJF
   const [submitted, setSubmitted] = useState(false); // Definindo o estado submitted
+
+
+  const [showTurnaroundBox, setShowTurnaroundBox] = useState(false);
+
+
+  const fetchTurnaroundList = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.post('http://localhost:8000/getturnaroundlist');
+
+      // Verifica se a resposta contém o array e se é um array
+      if (Array.isArray(response.data)) {
+        const turnaroundNames = ['FIFO', 'SJF', 'RR', 'EDF'];
+        const turnaroundData = response.data.map((value, index) => ({
+          name: turnaroundNames[index],
+          value: value.toFixed(2) // Formata o valor com duas casas decimais
+        }));
+        setTurnaroundList(turnaroundData);
+        setShowTurnaroundBox(true); // Exibe a caixinha com os turnarounds
+      } else {
+        throw new Error('Formato de dados inesperado');
+      }
+    } catch (error) {
+      setError('Erro ao buscar a lista de turnarounds.');
+      console.error('Erro ao buscar a lista de turnarounds:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     axios.get('http://localhost:8000/getprocesslist')
@@ -39,6 +74,9 @@ function App() {
     axios.post('http://localhost:8000/clear') // Ajuste a URL conforme necessário
       .then(response => {
         setProcessList([]); // Limpa a lista de processos no frontend
+        // Limpa a lista de processos no frontend
+        setTurnaroundList([]); // Limpa a lista de turnarounds
+        setShowTurnaroundBox(false);
       })
       .catch(error => {
         console.error('There was an error clearing the process list!', error);
@@ -112,6 +150,7 @@ function App() {
                 <div className='radio-tile-group'>
 
                   <button
+                    type="button"
                     className={`scheduler-button ${selectedScheduler === 'FIFO' ? 'selected' : ''}`}
                     onClick={() => setSelectedScheduler('FIFO')}
                   >
@@ -119,6 +158,7 @@ function App() {
                   </button>
 
                   <button
+                    type="button"
                     className={`scheduler-button ${selectedScheduler === 'SJF' ? 'selected' : ''}`}
                     onClick={() => setSelectedScheduler('SJF')}
                   >
@@ -126,6 +166,7 @@ function App() {
                   </button>
 
                   <button
+                    type="button"
                     className={`scheduler-button ${selectedScheduler === 'RR' ? 'selected' : ''}`}
                     onClick={() => setSelectedScheduler('RR')}
                   >
@@ -133,6 +174,7 @@ function App() {
                   </button>
 
                   <button
+                    type="button"
                     className={`scheduler-button ${selectedScheduler === 'EDF' ? 'selected' : ''}`}
                     onClick={() => setSelectedScheduler('EDF')}
                   >
@@ -197,7 +239,23 @@ function App() {
       </form>
 
       <button onClick={createGraph}>Criar Gráfico</button>
+      <button onClick={fetchTurnaroundList}>Calcular Turnarounds</button>
       {image && <iframe src={image} width="1200" height="800" title="Process Graph" />}
+
+
+
+
+      {loading && <p>Carregando...</p>}
+      {error && <p>{error}</p>}
+
+
+      {showTurnaroundBox && turnaroundList.length > 0 && (
+        <ul turnaround-listclassName="turnaround-list">
+          {turnaroundList.map((turnaround, index) => (
+            <li key={index} className="turnaround-list-item">{turnaround.name}: {turnaround.value}</li> // Exibe nome e valor
+          ))}
+        </ul>
+      )}
 
       <div>
         <h2>Lista de processos</h2>
@@ -210,6 +268,7 @@ function App() {
         </ul>
       </div>
     </div>
+
   );
 }
 export default App;

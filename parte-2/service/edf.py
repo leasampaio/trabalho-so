@@ -7,6 +7,7 @@ def edf(processos):
     turnaround_total = 0
     resultados = []
     lista_aux = []
+    qtd_processos=len(processos)
 
     dados_processos = {
         p.id: {
@@ -19,6 +20,7 @@ def edf(processos):
             "fim": None,
             "deadline": p.deadline,
             "estouro_deadline": False,
+            "turnaroundmedio":0
         }
         for p in processos
     }
@@ -82,8 +84,7 @@ def edf(processos):
                     tempo_atual >= processo_aux.tempo_chegada
                     and processo.deadline > processo_aux.deadline
                 ):
-                    if processo.tempo_chegada != 0:
-                        tempo_espera = tempo_atual - processo.tempo_execucao
+                    
                     lista_aux.append(processo)
                     tempo_espera_inicio = tempo_atual
                     copia_processos.remove(processo)
@@ -153,7 +154,6 @@ def edf(processos):
             copia_processos.remove(processo)
 
             turnaround_processo = tempo_atual - processo.tempo_chegada
-            tempo_espera = turnaround_processo - processo.tempo_execucao
             turnaround_total += turnaround_processo
 
             dados_processos[processo.id]["turnaround"] = turnaround_processo
@@ -163,22 +163,21 @@ def edf(processos):
             dados_processos[processo.id]["inicio"] = inicio_execucao
             dados_processos[processo.id]["fim"] = tempo_atual
             dados_processos[processo.id]["id"] = processo.id
+            dados_processos[processo.id]["turnaroundmedio"] = turnaround_total/qtd_processos
             if turnaround_processo > processo.deadline:
                 dados_processos[processo.id]["estouro_deadline"] = True
 
             resultados.append(dados_processos[processo.id])
 
-            print(
-                f"Executando {processo} tempo_espera {tempo_espera} turnaround_processo = {turnaround_processo}"
-            )
+            
 
         # Adiciona processos pausados de volta à lista de processos
         copia_processos.extend(lista_aux)
         lista_aux.clear()
 
     # Calcula a média de turnaround e adiciona ao resultado final
-
-    media_turnaround = turnaround_total / len(processos) if processos else 0
+      
+    media_turnaround = turnaround_total / qtd_processos if processos else 0
     print(media_turnaround)
     # Mostra os dados dos processos
     print(resultados)

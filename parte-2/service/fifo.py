@@ -24,20 +24,16 @@ def fifo(processos):
                 "fim": processo.tempo_execucao,
                 "tempo_espera": tempo_espera + processo.tempo_chegada,
                 "turnaround": turnaround_processo,
-                "Turnaround_Medio": turnaround_total / len(processos),
+                "turnaroundmedio": turnaround_total / len(processos),
                 "tempo_chegada": processo.tempo_chegada,
                 "tempo_execucao": processo.tempo_execucao,
             }
         )
 
-        print(
-            f"Executando {processo} tempo_espera {tempo_espera} turnaround_processo = {turnaround_processo}"
-        )
+        
 
         # Atualiza o tempo atual após a execução do processo
         tempo_atual += processo.tempo_execucao
     # resultados.append(turnaround_total / len(processos))
-    print(f"turnaround_total = {turnaround_total}")
-
-    print(resultados)
+     
     return resultados
