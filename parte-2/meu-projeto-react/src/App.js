@@ -6,16 +6,15 @@ import '../src/App.css'; // Importe o CSS
 
 function App() {
   const [processList, setProcessList] = useState([]);
-  const [image, setImage] = useState('');
+  const [image, setImage] = useState({ html: '', turnaround: '' });
   const [newProcess, setNewProcess] = useState({
     tempo_chegada: '',
     tempo_execucao: '',
     deadline: '',
     quantum_sistema: '',
     sobrecarga_sistema: ''
-
   });
-  const [selectedScheduler, setSelectedScheduler] = useState(1); // 1 for FIFO, 2 for Round Robin, 3 for EDF, 4 for SJF
+  const [selectedScheduler, setSelectedScheduler] = useState('FIFO'); // Ajustado para usar strings
   const [submitted, setSubmitted] = useState(false); // Definindo o estado submitted
 
   useEffect(() => {
@@ -35,10 +34,11 @@ function App() {
       [name]: value
     });
   };
+
   const clearProcessList = () => {
-    axios.post('http://localhost:8000/clear') // Ajuste a URL conforme necessário
+    axios.post('http://localhost:8000/clear')
       .then(response => {
-        setProcessList([]); // Limpa a lista de processos no frontend
+        setProcessList([]);
       })
       .catch(error => {
         console.error('There was an error clearing the process list!', error);
@@ -51,19 +51,20 @@ function App() {
       tempo_chegada: newProcess.tempo_chegada,
       tempo_execucao: newProcess.tempo_execucao,
       deadline: newProcess.deadline,
-      quantum_sistema: newProcess.quantum_sistema, // Manter os valores de quantum e sobrecarga
-      sobrecarga_sistema: newProcess.sobrecarga_sistema // Manter os valores de quantum e sobrecarga
+      quantum_sistema: newProcess.quantum_sistema,
+      sobrecarga_sistema: newProcess.sobrecarga_sistema
     };
 
     axios.post('http://localhost:8000/newprocess', processData)
       .then(response => {
         setProcessList(response.data.process);
-        setNewProcess((prevState) => ({
-          ...prevState,
+        setNewProcess({
           tempo_chegada: '',
           tempo_execucao: '',
-          deadline: ''
-        }));
+          deadline: '',
+          quantum_sistema: '',
+          sobrecarga_sistema: ''
+        });
       })
       .catch(error => {
         console.error('There was an error adding the process!', error);
@@ -73,7 +74,10 @@ function App() {
   const createGraph = () => {
     axios.post('http://localhost:8000/creategraph', { tipo_escalonador: selectedScheduler })
       .then(response => {
-        setImage(`data:text/html;base64,${btoa(response.data.html)}`);
+        setImage({
+          html: `data:text/html;base64,${btoa(response.data.html)}`,
+          turnaround: response.data.turnaround // Captura o turnaround da resposta
+        });
       })
       .catch(error => {
         console.error('There was an error creating the graph!', error);
@@ -83,7 +87,7 @@ function App() {
   return (
     <div className="App">
       <div className='header'>
-        <img src={logoUFBA} />
+        <img src={logoUFBA} alt="Logo UFBA" />
         <div className='navbar'>
           <h1>Escalonador de Processos</h1>
 
@@ -93,27 +97,28 @@ function App() {
               <div className='quantum-sobrecarga'>
 
                 <div className='label'>
-                  <label htmlfor="quantum" className='inputName'>Quantum</label>
-
+                  <label htmlFor="quantum" className='inputName'>Quantum</label>
                   <input type="number" id="quantum" name="quantum_sistema" value={newProcess.quantum_sistema}
                     onChange={handleChange}
-
                   />
-
                 </div>
+
                 <div className='label'>
-                  <label for="sobrecarga" className='inputName'>Sobrecarga</label>
+                  <label htmlFor="sobrecarga" className='inputName'>Sobrecarga</label>
                   <input type="number" id="sobrecarga" name="sobrecarga_sistema" value={newProcess.sobrecarga_sistema}
                     onChange={handleChange}
                   />
                 </div>
+
               </div>
+
               <div className='container'>
                 <div className='radio-tile-group'>
 
                   <button
                     className={`scheduler-button ${selectedScheduler === 'FIFO' ? 'selected' : ''}`}
                     onClick={() => setSelectedScheduler('FIFO')}
+                    type="button"
                   >
                     FIFO
                   </button>
@@ -121,6 +126,7 @@ function App() {
                   <button
                     className={`scheduler-button ${selectedScheduler === 'SJF' ? 'selected' : ''}`}
                     onClick={() => setSelectedScheduler('SJF')}
+                    type="button"
                   >
                     SJF
                   </button>
@@ -128,6 +134,7 @@ function App() {
                   <button
                     className={`scheduler-button ${selectedScheduler === 'RR' ? 'selected' : ''}`}
                     onClick={() => setSelectedScheduler('RR')}
+                    type="button"
                   >
                     Round Robin
                   </button>
@@ -135,6 +142,7 @@ function App() {
                   <button
                     className={`scheduler-button ${selectedScheduler === 'EDF' ? 'selected' : ''}`}
                     onClick={() => setSelectedScheduler('EDF')}
+                    type="button"
                   >
                     EDF
                   </button>
@@ -145,10 +153,8 @@ function App() {
           </form>
 
         </div>
-        <img src={logoIC} />
-
+        <img src={logoIC} alt="Logo IC" />
       </div>
-
 
       <div></div>
       <form onSubmit={handleSubmit}>
@@ -186,9 +192,6 @@ function App() {
           </label>
         </div>
 
-
-
-
         <div className='form-buttons'>
           <button type="submit">Adicionar processo</button>
           <button type="button" onClick={clearProcessList}>Limpar lista de processos</button>
@@ -197,7 +200,12 @@ function App() {
       </form>
 
       <button onClick={createGraph}>Criar Gráfico</button>
-      {image && <iframe src={image} width="1200" height="800" title="Process Graph" />}
+      {image.html && (
+  <div>
+    <iframe src={image.html} width="1200" height="800" title="Process Graph" />
+    <h2>Turnaround: {image.turnaround !== null && image.turnaround !== undefined ? image.turnaround : "0"}</h2>
+  </div>
+)}
 
       <div>
         <h2>Lista de processos</h2>
@@ -212,4 +220,5 @@ function App() {
     </div>
   );
 }
+
 export default App;

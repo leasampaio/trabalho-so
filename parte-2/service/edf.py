@@ -183,4 +183,4 @@ def edf(processos):
     # Mostra os dados dos processos
     print(resultados)
 
-    return resultados
+    return resultados, media_turnaround

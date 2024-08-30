@@ -52,4 +52,4 @@ def sjf(processos):
         tempo_atual += processo.tempo_execucao
     # resultados.append(turnaround_total / qtdProcessos)
     print(resultados)
-    return resultados
+    return resultados, turnaround_total

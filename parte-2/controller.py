@@ -34,31 +34,35 @@ async def create_graph(request: GraphRequest):
     tipo_escalonador = request.tipo_escalonador
     if (tipo_escalonador== 'FIFO'):
         processos = copy.deepcopy(list)
-        processo = fifo(processos)
+        processo, turnaround = fifo(processos)
         plot = criar_grafico_gantt_bokeh(processo, tipo_escalonador)
         
-        return plot
+        return plot, turnaround
+    
     if (tipo_escalonador== 'SJF'):
         processos = copy.deepcopy(list)
-        processo = sjf(processos)
+        processo, turnaround = sjf(processos)
         plot = criar_grafico_gantt_bokeh(processo, tipo_escalonador)
         
-        return plot
+        return plot, turnaround
+    
     if (tipo_escalonador== 'RR'):
         print(tipo_escalonador)
         processos = copy.deepcopy(list)
-        processo = round_robin(processos)
+        processo, turnaround = round_robin(processos)
         for item in processo:
             print(item)
         plot = criar_grafico_gantt_bokeh(processo, tipo_escalonador)
         
-        return plot
-    if (tipo_escalonador== 'EDF'):
+        return plot, turnaround
+    
+    if (tipo_escalonador == 'EDF'):
         print(tipo_escalonador)
         processos = copy.deepcopy(list)
-        processo=edf(processos)
-        plot=criar_grafico_gantt_bokeh(processo,tipo_escalonador)
-        return plot
+        processo, turnaround = edf(processos)
+        plot = criar_grafico_gantt_bokeh(processo,tipo_escalonador)
+        
+        return plot, turnaround
     
 @router.post("/clear")
 async def limpara_lista():
